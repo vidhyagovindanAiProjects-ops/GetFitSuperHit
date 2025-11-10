@@ -10,15 +10,15 @@ const ProgressReminder = ({ hasLoggedToday, streakCount }: ProgressReminderProps
   if (hasLoggedToday) return null;
 
   return (
-    <Card className="bg-warning/10 border-2 border-warning/30 animate-pulse">
+    <Card className="bg-white border-2 border-orange-400 shadow-lg animate-scale-in">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-warning flex-shrink-0" />
+          <Calendar className="w-6 h-6 text-orange-500 flex-shrink-0" />
           <div>
-            <p className="font-semibold text-foreground">
+            <p className="font-bold text-gray-900 text-lg">
               💥 Keep your SuperHit streak alive!
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-700 mt-1">
               {streakCount > 0 
                 ? `You're on a ${streakCount}-day streak — don't break it now! 🔥`
                 : "Start your journey today — log your first progress! 🚀"
