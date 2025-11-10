@@ -35,6 +35,7 @@ const Index = () => {
   const [goals, setGoals] = useState<FitnessGoal[]>([]);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -185,7 +186,7 @@ const Index = () => {
               <p className="text-muted-foreground mt-2">Welcome back to GetFitSuperHit 💥!</p>
             </div>
 
-            <Tabs defaultValue="dashboard" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3 rounded-none">
                 <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
                 <TabsTrigger value="goal">🎯 Set Goal</TabsTrigger>
@@ -197,7 +198,10 @@ const Index = () => {
                   <div className="text-center py-12">
                     <p className="text-xl text-muted-foreground mb-4">No goals yet!</p>
                     <p className="text-muted-foreground mb-6">Create your first fitness goal to get started 🚀</p>
-                    <Button onClick={() => setShowGoalForm(true)} size="lg">
+                    <Button onClick={() => {
+                      setShowGoalForm(true);
+                      setActiveTab("goal");
+                    }} size="lg">
                       Create Your First Goal
                     </Button>
                   </div>
