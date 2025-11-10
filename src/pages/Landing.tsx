@@ -9,7 +9,7 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-br from-secondary via-primary to-accent">
       <header className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">FitTrack Pro 💪</h1>
+          <h1 className="text-2xl font-bold text-white">GetFitSuperHit 💥</h1>
           <Button 
             variant="outline" 
             onClick={() => navigate("/auth")}
@@ -96,7 +96,7 @@ const Landing = () => {
       </main>
 
       <footer className="container mx-auto px-4 py-8 text-center text-white/70">
-        <p>&copy; 2025 FitTrack Pro. Your fitness, your data, your success.</p>
+        <p>&copy; 2025 GetFitSuperHit 💥. Your fitness, your journey, your SuperHit.</p>
       </footer>
     </div>
   );

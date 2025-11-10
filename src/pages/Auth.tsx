@@ -105,7 +105,7 @@ const Auth = () => {
             username: validatedData.username,
           });
 
-          toast.success("Account created! Welcome to FitTrack Pro! 🎉");
+          toast.success("Account created! Welcome to GetFitSuperHit 💥!");
           navigate("/dashboard");
         }
       }
@@ -125,7 +125,7 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-secondary via-primary to-accent bg-clip-text text-transparent">
-            FitTrack Pro 💪
+            GetFitSuperHit 💥
           </CardTitle>
           <CardDescription>
             {isLogin ? "Welcome back! Sign in to continue" : "Create your account to get started"}

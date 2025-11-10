@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import FitnessGoalCard from "@/components/FitnessGoalCard";
 import SetGoalForm from "@/components/SetGoalForm";
+import DailyAffirmation from "@/components/DailyAffirmation";
+import ProgressReminder from "@/components/ProgressReminder";
+import ShareStreak from "@/components/ShareStreak";
 
 interface Profile {
   id: string;
@@ -129,9 +132,13 @@ const Index = () => {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast.success("Signed out successfully");
-    navigate("/");
+    toast.success("You crushed it today — see you for your next SuperHit! 💪", {
+      duration: 2000,
+    });
+    setTimeout(async () => {
+      await supabase.auth.signOut();
+      navigate("/");
+    }, 500);
   };
 
   if (isLoading) {
@@ -148,7 +155,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-secondary via-primary to-accent">
       <header className="bg-white/10 backdrop-blur-sm border-b border-white/20">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">FitTrack Pro 💪</h1>
+          <h1 className="text-3xl font-bold text-white">GetFitSuperHit 💥</h1>
           <Button variant="outline" onClick={handleSignOut} className="bg-white/20 text-white border-white/30 hover:bg-white/30">
             Sign Out
           </Button>
@@ -156,10 +163,26 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <DailyAffirmation />
+          
+          <ProgressReminder 
+            hasLoggedToday={goals.some(g => {
+              const today = new Date().toDateString();
+              return g.streak && g.streak > 0;
+            })}
+            streakCount={Math.max(...goals.map(g => g.streak || 0), 0)}
+          />
+          
+          {goals.length > 0 && (
+            <ShareStreak streakCount={Math.max(...goals.map(g => g.streak || 0), 0)} />
+          )}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
-            <div className="p-6 text-center border-b">
-              <h2 className="text-3xl font-bold">Hi {profile?.username || "there"}! 👋</h2>
+            <div className="p-6 text-center border-b bg-gradient-to-r from-secondary/10 via-primary/10 to-accent/10">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-secondary via-primary to-accent bg-clip-text text-transparent">
+                Hi {user.user_metadata?.name || profile?.username || "Champion"}! 👋
+              </h2>
+              <p className="text-muted-foreground mt-2">Welcome back to GetFitSuperHit 💥!</p>
             </div>
 
             <Tabs defaultValue="dashboard" className="w-full">

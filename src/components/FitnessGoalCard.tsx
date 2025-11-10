@@ -1,11 +1,25 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Sparkles } from "lucide-react";
+
+const affirmations = [
+  "🔥 You're unstoppable!",
+  "Each rep brings your next SuperHit closer 💥",
+  "Consistency creates champions 🏆",
+  "Proud of your focus and grind 💪",
+  "Small steps lead to SuperHits 🌟",
+  "You're crushing it! Keep going! 💥",
+  "That's the spirit! Unstoppable energy! ⚡",
+  "Building momentum one rep at a time 🚀",
+  "Champions show up every single day 🌟",
+  "Your future self is cheering for you! 💪",
+];
 
 interface FitnessGoal {
   id: string;
@@ -28,6 +42,9 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
   const [showLogForm, setShowLogForm] = useState(false);
   const [logValue, setLogValue] = useState("");
   const [isLogging, setIsLogging] = useState(false);
+  const [showAffirmation, setShowAffirmation] = useState(false);
+  const [currentAffirmation, setCurrentAffirmation] = useState("");
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const progress = goal.total_progress || 0;
   const percentage = Math.min((progress / goal.target_value) * 100, 100);
@@ -55,7 +72,22 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
 
       if (error) throw error;
 
+      // Show random affirmation
+      const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+      setCurrentAffirmation(randomAffirmation);
+      setShowAffirmation(true);
+      
       toast.success(`Logged ${value} ${goal.unit}! 🎉`);
+      
+      // Check if goal completed
+      const newProgress = (progress || 0) + value;
+      if (newProgress >= goal.target_value && progress < goal.target_value) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+      
+      setTimeout(() => setShowAffirmation(false), 5000);
+      
       setLogValue("");
       setShowLogForm(false);
       onUpdate();
@@ -67,7 +99,14 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden relative transition-all duration-300 hover:shadow-lg">
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 text-6xl animate-bounce">🎉</div>
+          <div className="absolute top-10 left-1/4 text-4xl animate-ping">✨</div>
+          <div className="absolute top-10 right-1/4 text-4xl animate-ping" style={{ animationDelay: '0.2s' }}>⭐</div>
+        </div>
+      )}
       <CardContent className="p-6 space-y-4">
         <div>
           <h3 className="text-2xl font-bold capitalize">{goal.activity}</h3>
@@ -84,9 +123,20 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
           <Progress value={percentage} className="h-3" />
         </div>
 
+        {showAffirmation && (
+          <div className="bg-gradient-to-r from-secondary/20 via-primary/20 to-accent/20 border-2 border-primary/40 rounded-lg p-4 animate-scale-in">
+            <div className="flex items-center gap-2 justify-center">
+              <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+              <p className="text-lg font-bold bg-gradient-to-r from-secondary via-primary to-accent bg-clip-text text-transparent">
+                {currentAffirmation}
+              </p>
+            </div>
+          </div>
+        )}
+
         {goal.streak !== undefined && (
-          <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 text-center">
-            <p className="text-lg font-semibold">🔥 {goal.streak} day streak</p>
+          <div className="bg-gradient-to-r from-warning/20 to-warning/10 border-2 border-warning/30 rounded-lg p-3 text-center">
+            <p className="text-lg font-semibold">🔥 {goal.streak} day SuperHit streak!</p>
           </div>
         )}
 
@@ -97,8 +147,9 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
         )}
 
         {percentage >= 100 && (
-          <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
-            <p className="text-lg font-semibold text-success">🎉 Goal Completed!</p>
+          <div className="bg-gradient-to-r from-success/20 to-success/10 border-2 border-success/30 rounded-lg p-4 text-center animate-scale-in">
+            <p className="text-2xl font-bold text-success mb-1">🎉 SuperHit Achieved! 🎉</p>
+            <p className="text-sm text-muted-foreground">You crushed this goal! 💥</p>
           </div>
         )}
 
