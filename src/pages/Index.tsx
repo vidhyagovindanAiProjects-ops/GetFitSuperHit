@@ -52,7 +52,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate("/auth");
+      navigate("/");
     }
   }, [user, isLoading, navigate]);
 
@@ -131,7 +131,7 @@ const Index = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
-    navigate("/auth");
+    navigate("/");
   };
 
   if (isLoading) {
