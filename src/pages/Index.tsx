@@ -10,6 +10,7 @@ import SetGoalForm from "@/components/SetGoalForm";
 import DailyAffirmation from "@/components/DailyAffirmation";
 import ProgressReminder from "@/components/ProgressReminder";
 import ShareStreak from "@/components/ShareStreak";
+import { Target, Award, TrendingUp } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -136,7 +137,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary via-primary to-accent">
       <header className="bg-white/10 backdrop-blur-sm border-b border-white/20">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">GetFitSuperHit 💥</h1>
           <Button variant="outline" onClick={handleSignOut} className="bg-white/20 text-white border-white/30 hover:bg-white/30">
             Sign Out
@@ -145,7 +146,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           <DailyAffirmation />
           
           <ProgressReminder 
@@ -156,6 +157,52 @@ const Index = () => {
           {goals.length > 0 && (
             <ShareStreak streakCount={Math.max(...goals.map(g => g.goal_streak || 0), 0)} />
           )}
+
+          {/* Summary Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Active Goals</p>
+                  <p className="text-3xl font-bold text-white">{goals.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Completed</p>
+                  <p className="text-3xl font-bold text-white">
+                    {goals.filter(g => (g.goal_progress / g.target_value) * 100 >= 100).length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Avg Progress</p>
+                  <p className="text-3xl font-bold text-white">
+                    {goals.length > 0 
+                      ? Math.round(goals.reduce((sum, g) => sum + ((g.goal_progress / g.target_value) * 100), 0) / goals.length)
+                      : 0}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
             <div className="p-6 text-center border-b bg-gradient-to-r from-secondary/10 via-primary/10 to-accent/10">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-secondary via-primary to-accent bg-clip-text text-transparent">
@@ -171,7 +218,7 @@ const Index = () => {
                 <TabsTrigger value="progress">✏️ Log Progress</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="dashboard" className="p-6 space-y-4">
+              <TabsContent value="dashboard" className="p-6">
                 {goals.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-xl text-muted-foreground mb-4">No goals yet!</p>
@@ -184,9 +231,11 @@ const Index = () => {
                     </Button>
                   </div>
                 ) : (
-                  goals.map((goal) => (
-                    <FitnessGoalCard key={goal.id} goal={goal} userId={user.id} onUpdate={fetchGoals} />
-                  ))
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {goals.map((goal) => (
+                      <FitnessGoalCard key={goal.id} goal={goal} userId={user.id} onUpdate={fetchGoals} />
+                    ))}
+                  </div>
                 )}
               </TabsContent>
 
@@ -217,7 +266,7 @@ const Index = () => {
                     <p className="text-muted-foreground">Create a goal first to start logging progress!</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {goals.map((goal) => (
                       <FitnessGoalCard key={goal.id} goal={goal} userId={user.id} onUpdate={fetchGoals} />
                     ))}
