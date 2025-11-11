@@ -22,6 +22,7 @@ interface FitnessGoal {
   target_value: number;
   unit: string;
   deadline_days: number;
+  days_per_week?: number;
   created_at: string;
   goal_source?: string;
   goal_progress: number;

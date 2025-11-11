@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           activity: string
           created_at: string
+          days_per_week: number | null
           deadline_days: number
           goal_progress: number | null
           goal_source: string | null
@@ -31,6 +32,7 @@ export type Database = {
         Insert: {
           activity: string
           created_at?: string
+          days_per_week?: number | null
           deadline_days: number
           goal_progress?: number | null
           goal_source?: string | null
@@ -44,6 +46,7 @@ export type Database = {
         Update: {
           activity?: string
           created_at?: string
+          days_per_week?: number | null
           deadline_days?: number
           goal_progress?: number | null
           goal_source?: string | null

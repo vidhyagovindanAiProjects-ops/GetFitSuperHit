@@ -27,6 +27,7 @@ interface FitnessGoal {
   target_value: number;
   unit: string;
   deadline_days: number;
+  days_per_week?: number;
   created_at: string;
   goal_source?: string;
   goal_progress: number;
@@ -163,6 +164,11 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
           <p className="text-muted-foreground">
             Progress: <span className="font-semibold text-primary">{progress}</span> / {goal.target_value} {goal.unit}
           </p>
+          {goal.days_per_week && (
+            <p className="text-sm text-muted-foreground">
+              📅 {goal.days_per_week} {goal.days_per_week === 1 ? 'day' : 'days'} per week
+            </p>
+          )}
         </div>
 
         <div>

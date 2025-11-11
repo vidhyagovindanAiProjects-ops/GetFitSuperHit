@@ -14,6 +14,7 @@ const goalSchema = z.object({
   target_value: z.number().positive({ message: "Target must be a positive number" }),
   unit: z.string().trim().min(1, { message: "Unit is required" }).max(50),
   deadline_days: z.number().int().positive({ message: "Days must be a positive number" }).max(365),
+  days_per_week: z.number().int().min(1, { message: "At least 1 day per week" }).max(7, { message: "Maximum 7 days per week" }),
 });
 
 interface SetGoalFormProps {
@@ -28,10 +29,14 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
   const [targetValue, setTargetValue] = useState("");
   const [unit, setUnit] = useState("");
   const [deadlineDays, setDeadlineDays] = useState("");
+  const [daysPerWeek, setDaysPerWeek] = useState("3");
   const [isCreating, setIsCreating] = useState(false);
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isCreating) return; // Prevent duplicate submissions
+    
     setIsCreating(true);
 
     try {
@@ -40,6 +45,7 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
         target_value: parseFloat(targetValue),
         unit: unit.toLowerCase(),
         deadline_days: parseInt(deadlineDays),
+        days_per_week: parseInt(daysPerWeek),
       });
 
       const { error } = await supabase.from("fitness_goals").insert({
@@ -48,6 +54,7 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
         target_value: validatedData.target_value,
         unit: validatedData.unit,
         deadline_days: validatedData.deadline_days,
+        days_per_week: validatedData.days_per_week,
         goal_source: 'Manual',
         goal_progress: 0,
         goal_streak: 0,
@@ -62,6 +69,14 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
       });
 
       toast.success("🎯 Goal created successfully!");
+      
+      // Clear form fields
+      setActivity("");
+      setTargetValue("");
+      setUnit("");
+      setDeadlineDays("");
+      setDaysPerWeek("3");
+      
       onGoalCreated();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -132,6 +147,21 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
               placeholder="30"
               value={deadlineDays}
               onChange={(e) => setDeadlineDays(e.target.value)}
+              required
+              disabled={isCreating}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="daysPerWeek">Days per Week 📅</Label>
+            <Input
+              id="daysPerWeek"
+              type="number"
+              min="1"
+              max="7"
+              placeholder="3"
+              value={daysPerWeek}
+              onChange={(e) => setDaysPerWeek(e.target.value)}
               required
               disabled={isCreating}
             />
