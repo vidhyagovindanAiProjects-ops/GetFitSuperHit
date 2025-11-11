@@ -36,7 +36,7 @@ Always respond with exactly 3 goal suggestions in JSON format using this structu
       "target_value": number,
       "unit": "unit (lowercase)",
       "deadline_days": number,
-      "frequency": "X days/week",
+      "days_per_week": number,
       "motivation": "Short motivational line with emoji"
     }
   ],
@@ -99,7 +99,33 @@ Generate 3 SMART fitness goal suggestions.`;
     
     const parsedContent = JSON.parse(content);
 
-    return new Response(JSON.stringify(parsedContent), {
+    // Normalize suggestions to ensure correct data types
+    const normalizeNumber = (v: unknown): number => {
+      if (typeof v === "number") return v;
+      const str = String(v).replace(/[^0-9.]/g, '');
+      return Number(str) || 0;
+    };
+
+    const parseDaysPerWeek = (freq?: string, fallback?: number): number => {
+      const match = freq?.match(/(\d+)\s*days?\/week/i);
+      const n = match ? Number(match[1]) : (fallback ?? 3);
+      return Math.max(1, Math.min(7, n || 3));
+    };
+
+    const suggestions = (parsedContent.suggestions || []).map((s: any) => {
+      const days = s.days_per_week ?? parseDaysPerWeek(s.frequency, daysPerWeek);
+      return {
+        title: s.title,
+        activity: String(s.activity || "").toLowerCase(),
+        target_value: normalizeNumber(s.target_value),
+        unit: String(s.unit || "").toLowerCase(),
+        deadline_days: Math.max(1, normalizeNumber(s.deadline_days)),
+        days_per_week: Math.max(1, Math.min(7, normalizeNumber(days))),
+        motivation: s.motivation,
+      };
+    });
+
+    return new Response(JSON.stringify({ suggestions, summary: parsedContent.summary }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

@@ -55,6 +55,8 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState<number | null>(null);
 
+  const [summaryMessage, setSummaryMessage] = useState("");
+
   const handleGenerateAI = async () => {
     if (!goalDescription.trim()) {
       toast.error("Please describe your fitness goal");
@@ -66,34 +68,62 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
     setSelectedSuggestion(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-fitness-goal', {
+      const { data, error } = await supabase.functions.invoke("generate-fitness-goal", {
         body: {
-          goalDescription: goalDescription.trim(),
-          fitnessLevel,
-          daysPerWeek: parseInt(aiDaysPerWeek),
-          userName: userName || 'there'
-        }
+          goalDescription: goalDescription,
+          fitnessLevel: fitnessLevel,
+          daysPerWeek: aiDaysPerWeek,
+          userName: userName || "Friend",
+        },
       });
 
       if (error) {
-        if (error.message.includes('429')) {
-          toast.error("⏱️ Too many requests. Please wait a moment and try again, or use manual mode.");
-        } else if (error.message.includes('402')) {
-          toast.error("💳 AI credits needed. Please use manual mode for now.");
-        } else {
-          throw error;
-        }
+        console.error("AI generation error:", error);
+        toast.error("Failed to generate goals. Please try again.");
         return;
       }
 
-      if (data?.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
-        setAiSuggestions(data.suggestions);
-        toast.success("🎯 AI generated 3 goal suggestions for you!");
+      // Normalize AI suggestions to ensure correct data types
+      const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+      const parseNum = (v: any): number => {
+        if (typeof v === 'number') return v;
+        const str = String(v).replace(/[^0-9.]/g, '');
+        return Number(str) || 0;
+      };
+      const parseDays = (freq?: string, fallback?: number): number => {
+        const match = freq?.match(/(\d+)\s*days?\/week/i);
+        const n = match ? Number(match[1]) : (fallback ? Number(fallback) : 3);
+        return clamp(n || 3, 1, 7);
+      };
+
+      const normalized = (data?.suggestions || []).map((s: any) => ({
+        title: s.title,
+        activity: String(s.activity || "").toLowerCase(),
+        target_value: parseNum(s.target_value),
+        unit: String(s.unit || "").toLowerCase(),
+        deadline_days: parseNum(s.deadline_days),
+        days_per_week: s.days_per_week ?? parseDays(s.frequency, Number(aiDaysPerWeek)),
+        motivation: s.motivation
+      })).filter(s => 
+        Number.isFinite(s.target_value) && 
+        s.target_value > 0 &&
+        Number.isFinite(s.deadline_days) && 
+        s.deadline_days > 0 &&
+        Number.isFinite(s.days_per_week) &&
+        s.activity &&
+        s.unit
+      );
+
+      console.log("📊 Normalized AI suggestions:", normalized);
+
+      if (normalized.length > 0) {
+        setAiSuggestions(normalized);
+        setSummaryMessage(data.summary);
       } else {
-        toast.error("AI returned invalid suggestions. Please try manual mode.");
+        toast.error("AI returned incomplete data. Please try again or use manual mode.");
       }
     } catch (error) {
-      console.error('AI generation error:', error);
+      console.error("AI generation error:", error);
       toast.error("Failed to generate AI suggestions. Please try manual mode.");
     } finally {
       setIsGenerating(false);

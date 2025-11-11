@@ -204,6 +204,7 @@ const Index = () => {
                     onGoalCreated={() => {
                       setShowGoalForm(false);
                       fetchGoals();
+                      setActiveTab("dashboard");
                     }}
                     onCancel={() => setShowGoalForm(false)}
                   />
