@@ -222,6 +222,7 @@ const Index = () => {
                 ) : (
                   <SetGoalForm
                     userId={user.id}
+                    userName={profile?.username}
                     onGoalCreated={() => {
                       setShowGoalForm(false);
                       fetchGoals();
