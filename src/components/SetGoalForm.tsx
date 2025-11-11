@@ -118,11 +118,16 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
     }
 
     const suggestion = aiSuggestions[selectedSuggestion];
+    console.log('🎯 Creating AI goal with data:', suggestion);
     
-    if (isCreating) return;
+    if (isCreating) {
+      console.log('⚠️ Already creating, preventing duplicate submission');
+      return;
+    }
     setIsCreating(true);
 
     try {
+      console.log('📝 Validating AI goal data...');
       const validatedData = goalSchema.parse({
         activity: suggestion.activity.toLowerCase(),
         target_value: suggestion.target_value,
@@ -130,8 +135,10 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         deadline_days: suggestion.deadline_days,
         days_per_week: suggestion.days_per_week,
       });
+      console.log('✅ Validation passed:', validatedData);
 
       // Check for duplicates
+      console.log('🔍 Checking for duplicate goals...');
       const { data: existing, error: existingError } = await supabase
         .from("fitness_goals")
         .select("id")
@@ -140,12 +147,19 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         .eq("unit", validatedData.unit)
         .limit(1);
 
-      if (existingError) throw existingError;
+      if (existingError) {
+        console.error('❌ Error checking duplicates:', existingError);
+        throw existingError;
+      }
+      
       if (existing && existing.length > 0) {
+        console.log('⚠️ Duplicate goal found');
         toast.error(`⚠️ You already have a ${validatedData.activity} goal in ${validatedData.unit}. Please log progress on your existing goal or delete it first.`);
+        setIsCreating(false); // Reset state immediately
         return;
       }
 
+      console.log('💾 Inserting AI goal into database...');
       const { error } = await supabase.from("fitness_goals").insert({
         user_id: userId,
         activity: validatedData.activity,
@@ -158,8 +172,12 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         goal_streak: 0,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database insert error:', error);
+        throw error;
+      }
 
+      console.log('✅ AI goal created successfully!');
       confetti({
         particleCount: 100,
         spread: 70,
@@ -169,24 +187,32 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
       toast.success("🎯 AI goal created successfully!");
       onGoalCreated();
     } catch (error) {
+      console.error('❌ AI goal creation error:', error);
       if (error instanceof z.ZodError) {
+        console.error('Validation error details:', error.errors);
         toast.error(error.errors[0].message);
       } else {
-        toast.error("Failed to create goal");
+        toast.error("Failed to create AI goal. Please try again.");
       }
     } finally {
+      console.log('🔄 Resetting isCreating state');
       setIsCreating(false);
     }
   };
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Manual goal submission started');
     
-    if (isCreating) return; // Prevent duplicate submissions
+    if (isCreating) {
+      console.log('⚠️ Already creating, preventing duplicate submission');
+      return;
+    }
     
     setIsCreating(true);
 
     try {
+      console.log('📝 Validating manual goal data...');
       const validatedData = goalSchema.parse({
         activity: activity.toLowerCase(),
         target_value: parseFloat(targetValue),
@@ -194,8 +220,10 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         deadline_days: parseInt(deadlineDays),
         days_per_week: parseInt(daysPerWeek),
       });
+      console.log('✅ Manual validation passed:', validatedData);
 
       // Prevent duplicates: check if a goal with same activity + unit already exists for this user
+      console.log('🔍 Checking for duplicate goals...');
       const { data: existing, error: existingError } = await supabase
         .from("fitness_goals")
         .select("id")
@@ -204,12 +232,19 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         .eq("unit", validatedData.unit)
         .limit(1);
 
-      if (existingError) throw existingError;
+      if (existingError) {
+        console.error('❌ Error checking duplicates:', existingError);
+        throw existingError;
+      }
+      
       if (existing && existing.length > 0) {
+        console.log('⚠️ Duplicate goal found');
         toast.error(`⚠️ You already have a ${validatedData.activity} goal in ${validatedData.unit}. Please log progress on your existing goal or delete it first.`);
+        setIsCreating(false); // Reset state immediately
         return;
       }
 
+      console.log('💾 Inserting manual goal into database...');
       const { error } = await supabase.from("fitness_goals").insert({
         user_id: userId,
         activity: validatedData.activity,
@@ -222,8 +257,12 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         goal_streak: 0,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database insert error:', error);
+        throw error;
+      }
 
+      console.log('✅ Manual goal created successfully!');
       confetti({
         particleCount: 100,
         spread: 70,
@@ -241,12 +280,15 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
       
       onGoalCreated();
     } catch (error) {
+      console.error('❌ Manual goal creation error:', error);
       if (error instanceof z.ZodError) {
+        console.error('Validation error details:', error.errors);
         toast.error(error.errors[0].message);
       } else {
-        toast.error("Failed to create goal");
+        toast.error("Failed to create manual goal. Please try again.");
       }
     } finally {
+      console.log('🔄 Resetting isCreating state');
       setIsCreating(false);
     }
   };
