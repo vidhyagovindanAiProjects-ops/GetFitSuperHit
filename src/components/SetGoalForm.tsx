@@ -59,7 +59,7 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
 
       if (existingError) throw existingError;
       if (existing && existing.length > 0) {
-        toast.error("You already have a goal for this activity and unit. Please log progress on it or use a different name.");
+        toast.error(`⚠️ You already have a ${validatedData.activity} goal in ${validatedData.unit}. Please log progress on your existing goal or delete it first.`);
         return;
       }
 
