@@ -93,7 +93,23 @@ const Index = () => {
       .order("created_at", { ascending: false });
 
     if (goalsData) {
-      setGoals(goalsData as FitnessGoal[]);
+      const map = new Map<string, FitnessGoal>();
+      for (const g of goalsData as FitnessGoal[]) {
+        const key = `${g.activity}|${g.unit}`;
+        const existing = map.get(key);
+        if (!existing) {
+          map.set(key, g);
+        } else {
+          const existingProgress = Number(existing.goal_progress || 0);
+          const currentProgress = Number(g.goal_progress || 0);
+          const existingDate = new Date(existing.created_at).getTime();
+          const currentDate = new Date(g.created_at).getTime();
+          if (currentProgress > existingProgress || (currentProgress === existingProgress && currentDate > existingDate)) {
+            map.set(key, g);
+          }
+        }
+      }
+      setGoals(Array.from(map.values()));
     }
   };
 

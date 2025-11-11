@@ -48,6 +48,21 @@ const SetGoalForm = ({ userId, onGoalCreated, onCancel }: SetGoalFormProps) => {
         days_per_week: parseInt(daysPerWeek),
       });
 
+      // Prevent duplicates: check if a goal with same activity + unit already exists for this user
+      const { data: existing, error: existingError } = await supabase
+        .from("fitness_goals")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("activity", validatedData.activity)
+        .eq("unit", validatedData.unit)
+        .limit(1);
+
+      if (existingError) throw existingError;
+      if (existing && existing.length > 0) {
+        toast.error("You already have a goal for this activity and unit. Please log progress on it or use a different name.");
+        return;
+      }
+
       const { error } = await supabase.from("fitness_goals").insert({
         user_id: userId,
         activity: validatedData.activity,
