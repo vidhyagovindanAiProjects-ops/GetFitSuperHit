@@ -19,6 +19,9 @@ export type Database = {
           activity: string
           created_at: string
           deadline_days: number
+          goal_progress: number | null
+          goal_source: string | null
+          goal_streak: number | null
           id: string
           target_value: number
           unit: string
@@ -29,6 +32,9 @@ export type Database = {
           activity: string
           created_at?: string
           deadline_days: number
+          goal_progress?: number | null
+          goal_source?: string | null
+          goal_streak?: number | null
           id?: string
           target_value: number
           unit: string
@@ -39,6 +45,9 @@ export type Database = {
           activity?: string
           created_at?: string
           deadline_days?: number
+          goal_progress?: number | null
+          goal_source?: string | null
+          goal_streak?: number | null
           id?: string
           target_value?: number
           unit?: string

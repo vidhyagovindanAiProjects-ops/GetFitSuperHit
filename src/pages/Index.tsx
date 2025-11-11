@@ -25,6 +25,9 @@ interface FitnessGoal {
   created_at: string;
   total_progress?: number;
   streak?: number;
+  goal_source?: string;
+  goal_progress?: number;
+  goal_streak?: number;
 }
 
 const Index = () => {

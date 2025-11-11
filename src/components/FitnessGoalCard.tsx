@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
 
 const affirmations = [
   "🔥 You're unstoppable!",
@@ -30,6 +30,9 @@ interface FitnessGoal {
   created_at: string;
   total_progress?: number;
   streak?: number;
+  goal_source?: string;
+  goal_progress?: number;
+  goal_streak?: number;
 }
 
 interface FitnessGoalCardProps {
@@ -46,8 +49,10 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
   const [currentAffirmation, setCurrentAffirmation] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const progress = goal.total_progress || 0;
+  // Use goal_progress from DB if available, otherwise fall back to total_progress
+  const progress = goal.goal_progress ?? goal.total_progress ?? 0;
   const percentage = Math.min((progress / goal.target_value) * 100, 100);
+  const streak = goal.goal_streak ?? goal.streak ?? 0;
   const daysElapsed = Math.floor(
     (new Date().getTime() - new Date(goal.created_at).getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -64,6 +69,7 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
         return;
       }
 
+      // Insert progress log
       const { error } = await supabase.from("progress_logs").insert({
         user_id: userId,
         goal_id: goal.id,
@@ -71,6 +77,20 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
       });
 
       if (error) throw error;
+
+      // Update goal progress and streak in fitness_goals table
+      const updatedProgress = progress + value;
+      const updatedStreak = streak + 1;
+      
+      const { error: updateError } = await supabase
+        .from("fitness_goals")
+        .update({
+          goal_progress: updatedProgress,
+          goal_streak: updatedStreak,
+        })
+        .eq("id", goal.id);
+
+      if (updateError) throw updateError;
 
       // Show random affirmation
       const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
@@ -80,8 +100,7 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
       toast.success(`Logged ${value} ${goal.unit}! 🎉`);
       
       // Check if goal completed
-      const newProgress = (progress || 0) + value;
-      if (newProgress >= goal.target_value && progress < goal.target_value) {
+      if (updatedProgress >= goal.target_value && progress < goal.target_value) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
@@ -109,7 +128,15 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
       )}
       <CardContent className="p-6 space-y-4">
         <div>
-          <h3 className="text-2xl font-bold capitalize">{goal.activity}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold capitalize">{goal.activity}</h3>
+            {goal.goal_source === 'AI' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500/20 to-green-500/20 border border-blue-500/30">
+                <Zap className="w-3 h-3 text-blue-600" />
+                <span className="text-xs font-semibold text-blue-600">AI</span>
+              </span>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Progress: <span className="font-semibold text-primary">{progress}</span> / {goal.target_value} {goal.unit}
           </p>
@@ -134,9 +161,9 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
           </div>
         )}
 
-        {goal.streak !== undefined && (
+        {streak > 0 && (
           <div className="bg-gradient-to-r from-warning/20 to-warning/10 border-2 border-warning/30 rounded-lg p-3 text-center">
-            <p className="text-lg font-semibold">🔥 {goal.streak} day SuperHit streak!</p>
+            <p className="text-lg font-semibold">🔥 {streak} day SuperHit streak!</p>
           </div>
         )}
 

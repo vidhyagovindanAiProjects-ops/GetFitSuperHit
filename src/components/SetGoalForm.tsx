@@ -102,6 +102,9 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         target_value: suggestion.target_value,
         unit: suggestion.unit,
         deadline_days: suggestion.deadline_days,
+        goal_source: 'AI',
+        goal_progress: 0,
+        goal_streak: 0,
       });
 
       if (error) throw error;
@@ -145,6 +148,9 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         target_value: validatedData.target_value,
         unit: validatedData.unit,
         deadline_days: validatedData.deadline_days,
+        goal_source: 'Manual',
+        goal_progress: 0,
+        goal_streak: 0,
       });
 
       if (error) throw error;
@@ -155,7 +161,10 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         origin: { y: 0.6 },
       });
 
-      toast.success("Goal created successfully! 🎯");
+      toast.success("🎯 Goal saved successfully!");
+      setTimeout(() => {
+        toast.info("Tip 💡: Doing 10 minutes is better than waiting for the perfect hour.");
+      }, 1500);
       onGoalCreated();
     } catch (error) {
       if (error instanceof z.ZodError) {
