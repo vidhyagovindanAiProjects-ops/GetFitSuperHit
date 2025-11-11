@@ -90,7 +90,13 @@ Generate 3 SMART fitness goal suggestions.`;
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+    
+    // Strip markdown code blocks if present
+    if (content.includes('```')) {
+      content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    }
+    
     const parsedContent = JSON.parse(content);
 
     return new Response(JSON.stringify(parsedContent), {
