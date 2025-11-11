@@ -116,10 +116,7 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         origin: { y: 0.6 },
       });
 
-      toast.success("You're investing in the best version of yourself 🌸");
-      setTimeout(() => {
-        toast.info("Tip 💡: Doing 10 minutes is better than waiting for the perfect hour.");
-      }, 1500);
+      toast.success("✅ Goal created successfully!");
       
       onGoalCreated();
     } catch (error) {
@@ -161,10 +158,7 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
         origin: { y: 0.6 },
       });
 
-      toast.success("🎯 Goal saved successfully!");
-      setTimeout(() => {
-        toast.info("Tip 💡: Doing 10 minutes is better than waiting for the perfect hour.");
-      }, 1500);
+      toast.success("🎯 Goal created successfully!");
       onGoalCreated();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -317,7 +311,7 @@ const SetGoalForm = ({ userId, userName, onGoalCreated, onCancel }: SetGoalFormP
                     disabled={isCreating || selectedSuggestion === null}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
                   >
-                    {isCreating ? "Saving..." : "Save Goal 🎉"}
+                    {isCreating ? "Creating..." : "Create Goal 💪"}
                   </Button>
                   <Button
                     variant="outline"
