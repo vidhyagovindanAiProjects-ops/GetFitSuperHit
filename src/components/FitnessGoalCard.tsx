@@ -28,11 +28,9 @@ interface FitnessGoal {
   unit: string;
   deadline_days: number;
   created_at: string;
-  total_progress?: number;
-  streak?: number;
   goal_source?: string;
-  goal_progress?: number;
-  goal_streak?: number;
+  goal_progress: number;
+  goal_streak: number;
 }
 
 interface FitnessGoalCardProps {
@@ -49,10 +47,9 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
   const [currentAffirmation, setCurrentAffirmation] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Use goal_progress from DB if available, otherwise fall back to total_progress
-  const progress = goal.goal_progress ?? goal.total_progress ?? 0;
+  const progress = goal.goal_progress;
   const percentage = Math.min((progress / goal.target_value) * 100, 100);
-  const streak = goal.goal_streak ?? goal.streak ?? 0;
+  const streak = goal.goal_streak;
   const daysElapsed = Math.floor(
     (new Date().getTime() - new Date(goal.created_at).getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -78,15 +75,41 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
 
       if (error) throw error;
 
-      // Update goal progress and streak in fitness_goals table
-      const updatedProgress = progress + value;
-      const updatedStreak = streak + 1;
+      // Fetch all logs to recalculate total progress
+      const { data: allLogs } = await supabase
+        .from("progress_logs")
+        .select("value, logged_at")
+        .eq("goal_id", goal.id)
+        .order("logged_at", { ascending: false });
+
+      const totalLogged = allLogs?.reduce((sum, log) => sum + Number(log.value), 0) || 0;
       
+      // Calculate streak based on consecutive days
+      let newStreak = 0;
+      if (allLogs && allLogs.length > 0) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let currentDate = new Date(today);
+        for (const log of allLogs) {
+          const logDate = new Date(log.logged_at);
+          logDate.setHours(0, 0, 0, 0);
+          
+          if (logDate.getTime() === currentDate.getTime()) {
+            newStreak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+      
+      // Update goal progress and streak in fitness_goals table
       const { error: updateError } = await supabase
         .from("fitness_goals")
         .update({
-          goal_progress: updatedProgress,
-          goal_streak: updatedStreak,
+          goal_progress: totalLogged,
+          goal_streak: newStreak,
         })
         .eq("id", goal.id);
 
@@ -100,7 +123,7 @@ const FitnessGoalCard = ({ goal, userId, onUpdate }: FitnessGoalCardProps) => {
       toast.success(`Logged ${value} ${goal.unit}! 🎉`);
       
       // Check if goal completed
-      if (updatedProgress >= goal.target_value && progress < goal.target_value) {
+      if (totalLogged >= goal.target_value && progress < goal.target_value) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }

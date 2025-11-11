@@ -23,11 +23,9 @@ interface FitnessGoal {
   unit: string;
   deadline_days: number;
   created_at: string;
-  total_progress?: number;
-  streak?: number;
   goal_source?: string;
-  goal_progress?: number;
-  goal_streak?: number;
+  goal_progress: number;
+  goal_streak: number;
 }
 
 const Index = () => {
@@ -94,44 +92,7 @@ const Index = () => {
       .order("created_at", { ascending: false });
 
     if (goalsData) {
-      const goalsWithProgress = await Promise.all(
-        goalsData.map(async (goal) => {
-          const { data: logs } = await supabase
-            .from("progress_logs")
-            .select("value, logged_at")
-            .eq("goal_id", goal.id)
-            .order("logged_at", { ascending: false });
-
-          const total_progress = logs?.reduce((sum, log) => sum + Number(log.value), 0) || 0;
-
-          let streak = 0;
-          if (logs && logs.length > 0) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            let currentDate = new Date(today);
-            for (const log of logs) {
-              const logDate = new Date(log.logged_at);
-              logDate.setHours(0, 0, 0, 0);
-              
-              if (logDate.getTime() === currentDate.getTime()) {
-                streak++;
-                currentDate.setDate(currentDate.getDate() - 1);
-              } else {
-                break;
-              }
-            }
-          }
-
-          return {
-            ...goal,
-            total_progress,
-            streak,
-          };
-        })
-      );
-
-      setGoals(goalsWithProgress);
+      setGoals(goalsData as FitnessGoal[]);
     }
   };
 
@@ -171,15 +132,12 @@ const Index = () => {
           <DailyAffirmation />
           
           <ProgressReminder 
-            hasLoggedToday={goals.some(g => {
-              const today = new Date().toDateString();
-              return g.streak && g.streak > 0;
-            })}
-            streakCount={Math.max(...goals.map(g => g.streak || 0), 0)}
+            hasLoggedToday={goals.some(g => g.goal_streak > 0)}
+            streakCount={Math.max(...goals.map(g => g.goal_streak || 0), 0)}
           />
           
           {goals.length > 0 && (
-            <ShareStreak streakCount={Math.max(...goals.map(g => g.streak || 0), 0)} />
+            <ShareStreak streakCount={Math.max(...goals.map(g => g.goal_streak || 0), 0)} />
           )}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
             <div className="p-6 text-center border-b bg-gradient-to-r from-secondary/10 via-primary/10 to-accent/10">
